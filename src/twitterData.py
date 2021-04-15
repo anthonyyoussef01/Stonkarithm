@@ -3,6 +3,7 @@ import tweepy
 import re
 import csv
 import pandas as pd
+from stockData import *
 
 consumer_key = 'sz6x0nvL0ls9wacR64MZu23z4'
 consumer_secret = 'ofeGnzduikcHX6iaQMqBCIJ666m6nXAQACIAXMJaFhmC6rjRmT'
@@ -17,6 +18,7 @@ api = tweepy.API(auth)
 
 # create list to append tweets to
 tweets = []
+TICKER = '$GME'
 
 def get_tweets(query, count):
     # empty list to store parsed tweets
@@ -46,24 +48,48 @@ def get_tweets(query, count):
         tweets.append(line)
     return tweets
 
-results = []
-with open('nasdaq_screener.csv', newline='') as inputfile:
-    for row in csv.reader(inputfile):
-        results.append(row[0])
-s1 = " OR $".join(results)
-s1 = f"(${s1}"
-s2 = ") min_faves:200 lang:en -filter:links -filter:replies -filter:retweets"
-query = s1+s2
-print(query)
+def buildTweetDataFrame(startDate, endDate):
+    query = TICKER + " -filter:links -filter:replies -filter:retweets"
+    start = datetime.datetime.strptime(startDate, "%Y-%m-%d")
+    end = datetime.datetime.strptime(endDate, "%Y-%m-%d")
+    # fetched_tweets = api.search(query, lang='en', count=100, until=end)
+    fetched_tweets = tweepy.Cursor(api.search,
+                                   query,
+                                   lang="en",
+                                   until=end,
+                                   result_type="recent")
+    print(fetched_tweets.items().num_tweets)
+    for tweet_info in fetched_tweets.items():
+        date = tweet_info.created_at.date()
+        print(date)
+        text = tweet_info.full_text
+        price = getStockPrice(date,TICKER)
+        data = pd.DataFrame(data = [date,text,price], columns=['Date','Tweets', 'Price'])
+    return data
 
-tweets = get_tweets(query=query, count=20000)
 
-# convert 'tweets' list to pandas.DataFrame
-tweets_df = pd.DataFrame(tweets)
-# define file path (string) to save csv file to
-FILE_PATH = "C:\\Users\\antho\\PycharmProjects\\Stonkarithim\\src\\result.csv"
-# use pandas to save dataframe to csv
-tweets_df.to_csv(FILE_PATH)
+tData = buildTweetDataFrame('2021-4-12', '2020-4-13')
+print(tData)
+
+# results = []
+# with open('nasdaq_screener.csv', newline='') as inputfile:
+#     for row in csv.reader(inputfile):
+#         results.append(row[0])
+# s1 = " OR $".join(results)
+# s1 = f"(${s1}"
+# s2 = ") min_faves:200 lang:en -filter:links -filter:replies -filter:retweets"
+# query = s1+s2
+# print(query)
+#
+# tweets = get_tweets(query=query, count=20000)
+# print(tweets);
+#
+# # convert 'tweets' list to pandas.DataFrame
+# tweets_df = pd.DataFrame(tweets)
+# # define file path (string) to save csv file to
+# FILE_PATH = "C:\\Users\\antho\\PycharmProjects\\Stonkarithim\\src\\result.csv"
+# # use pandas to save dataframe to csv
+# tweets_df.to_csv(FILE_PATH)
 
 
 """
