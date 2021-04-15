@@ -25,7 +25,7 @@ def get_tweets(query, count):
 
     # call twitter api to fetch tweets
     q=str(query)
-    fetched_tweets = api.search(q, lang = 'en', count=count)
+    fetched_tweets = api.search(q, lang = 'en', count=count, tweet_mode='extended')
 
     # parsing tweets one by one
     print(len(fetched_tweets))
@@ -34,12 +34,12 @@ def get_tweets(query, count):
         # empty dictionary to store required params of a tweet
         parsed_tweet = {}
         # saving text of tweet
-        parsed_tweet['text'] = tweet.text
+        parsed_tweet['text'] = tweet.full_text
 
         #filter the words in the tweets
         #line = re.sub("[^A-Za-z]", " ", tweet.text)
         #target.write(line+"\n")
-        line = re.sub('@[\w]+', '', tweet.text)
+        line = re.sub('@[\w]+', '', tweet.full_text)
         target.write(line+"\n")
         target.write("--------------------------------------------------------------\n")
         # append all tweet data to list
@@ -56,7 +56,7 @@ s2 = ") min_faves:200 lang:en -filter:links -filter:replies -filter:retweets"
 query = s1+s2
 print(query)
 
-tweets = get_tweets(query =query, count=20000)
+tweets = get_tweets(query=query, count=20000)
 
 # convert 'tweets' list to pandas.DataFrame
 tweets_df = pd.DataFrame(tweets)
