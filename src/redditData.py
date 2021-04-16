@@ -2,6 +2,18 @@ import praw
 from wordcloudUtil import *
 from get_all_tickers import get_tickers as gt
 
+unicode_string = "UPVOTE YOUR STILL HOLDING AMC \u203c\ufe0f I WANNA SEE WHOS STILL WITH ME AND KNOW IM NOT ALONE IN THIS \ud83d\ude05\u203c\ufe0f\ud83d\ude80\ud83d\ude80\ud83d\ude80"
+print(unicode_string.encode('utf-16','surrogatepass').decode('utf-16'))
+
+s = ""
+p1 = "https://www.reddit.com/r/wallstreetbets/search.json?q="
+p2 = input("Type ticker")
+p3 = "&sort=relevance&limit=100"
+seq = (p1, p2, p3)
+link = s.join(seq)
+print(link)
+
+"""
 tickers = ["GME", "AMC", "NIO", "PLTR"]
 
 tickerDictionary = {}
@@ -44,3 +56,4 @@ for submission in reddit.subreddit("wallstreetbets").hot(limit=2):
 
 print(tickerDictionary)
 # generate_wordcloud(text)
+"""
