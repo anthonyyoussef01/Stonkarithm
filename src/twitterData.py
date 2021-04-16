@@ -46,6 +46,7 @@ def get_tweets(query, count):
         tweets.append(line)
     return tweets
 
+"""
 results = []
 with open('nasdaq_screener.csv', newline='') as inputfile:
     for row in csv.reader(inputfile):
@@ -55,6 +56,11 @@ s1 = f"(${s1}"
 s2 = ") min_faves:200 lang:en -filter:links -filter:replies -filter:retweets"
 query = s1+s2
 print(query)
+"""
+s1 = input("Type ticker")
+s1 = f"(${s1}"
+s2 = ") min_faves:200 lang:en -filter:links -filter:replies -filter:retweets"
+query = s1+s2
 
 tweets = get_tweets(query=query, count=20000)
 
