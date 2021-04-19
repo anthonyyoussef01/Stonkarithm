@@ -3,6 +3,11 @@ import tweepy
 import re
 import csv
 import pandas as pd
+import GetOldTweets3 as got
+from datetime import datetime, timedelta
+# use "pip3 install --user --upgrade git+https://github.com/twintproject/twint.git@origin/master#egg=twint"
+import twint
+import pandas
 
 consumer_key = 'sz6x0nvL0ls9wacR64MZu23z4'
 consumer_secret = 'ofeGnzduikcHX6iaQMqBCIJ666m6nXAQACIAXMJaFhmC6rjRmT'
@@ -18,7 +23,14 @@ api = tweepy.API(auth)
 # create list to append tweets to
 tweets = []
 
-def get_tweets(query, count):
+def get_tweets():
+    count = 1000
+
+    s1 = input("Type ticker ")
+    s1 = f"(${s1}"
+    s2 = ") min_faves:200 lang:en -filter:links -filter:replies -filter:retweets"
+    query = s1 + s2
+
     # empty list to store parsed tweets
     tweets = []
     target = io.open("mytweets.txt", 'w', encoding='utf-8')
@@ -27,9 +39,57 @@ def get_tweets(query, count):
     q=str(query)
     fetched_tweets = api.search(q, lang = 'en', count=count, tweet_mode='extended')
 
-    # parsing tweets one by one
     print(len(fetched_tweets))
+    # if we have less than 90 relevant tweets, we will attempt to get more
+    if (len(fetched_tweets) < 90):
+        s2 = ") min_faves:20 lang:en -filter:links -filter:replies -filter:retweets"
+        query = s1 + s2
 
+        # empty list to store parsed tweets
+        tweets = []
+        target = io.open("mytweets.txt", 'w', encoding='utf-8')
+
+        # call twitter api to fetch tweets
+        q = str(query)
+        fetched_tweets = api.search(q, lang='en', count=count, tweet_mode='extended')
+
+        print(len(fetched_tweets))
+        if (len(fetched_tweets) < 90):
+            # Configure
+            c = twint.Config()
+            c.Search = query
+            c.Limit = count
+            c.Store_csv = True
+            c.Output = "result"
+            c.Lang = "en"
+
+            # Run
+            twint.run.Search(c)
+
+            # get list of tweets
+            colnames = ['num1', 'num2', 'time-zone', 'date', 'time', 'num3', 'num4', 'username', 'tweet']
+            data = pandas.read_csv('result/tweets.csv', names=colnames)
+
+            fetched_tweets = data.tweet.tolist()
+            print(fetched_tweets)
+            """
+            # get today's date
+            to_date = datetime.today().strftime('%Y-%m-%d')
+
+            # get the date from 2 weeks ago
+            twa = datetime.now() - timedelta(14)
+            from_date = datetime.strftime(twa, '%Y-%m-%d')
+
+            # use GetOldTweets3 to get older tweets
+            tweetCriteria = got.manager.TweetCriteria().setQuerySearch(query) \
+                .setSince(from_date) \
+                .setUntil(to_date) \
+                .setMaxTweets(count)
+            tweet = got.manager.TweetManager.getTweets(tweetCriteria)[0]
+            print(tweet.text)
+            """
+
+    # parsing tweets one by one
     for tweet in fetched_tweets:
         # empty dictionary to store required params of a tweet
         parsed_tweet = {}
@@ -57,12 +117,7 @@ s2 = ") min_faves:200 lang:en -filter:links -filter:replies -filter:retweets"
 query = s1+s2
 print(query)
 """
-s1 = input("Type ticker")
-s1 = f"(${s1}"
-s2 = ") min_faves:200 lang:en -filter:links -filter:replies -filter:retweets"
-query = s1+s2
-
-tweets = get_tweets(query=query, count=20000)
+tweets = get_tweets()
 
 # convert 'tweets' list to pandas.DataFrame
 tweets_df = pd.DataFrame(tweets)
