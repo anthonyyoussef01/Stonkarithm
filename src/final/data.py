@@ -6,21 +6,9 @@ import os
 from parameters import START_DATE, END_DATE
 
 
-def load_data_historical(ticker, n_steps=50, scale=True, lookup_step=1,
+def load_data_historical(ticker, n_steps=30, scale=True, lookup_step=1,
                 test_size=0.2, feature_columns=['adjclose', 'volume', 'open', 'high', 'low']):
-    """
-    Loads data from Yahoo Finance source, as well as scaling, shuffling, normalizing and splitting.
-    Params:
-        ticker (str/pd.DataFrame): the ticker you want to load, examples include AAPL, TESL, etc.
-        n_steps (int): the historical sequence length (i.e window size) used to predict, default is 50
-        scale (bool): whether to scale prices from 0 to 1, default is True
-        shuffle (bool): whether to shuffle the dataset (both training & testing), default is True
-        lookup_step (int): the future lookup step to predict, default is 1 (e.g next day)
-        split_by_date (bool): whether we split the dataset into training/testing by date, setting it
-            to False will split datasets in a random way
-        test_size (float): ratio for test data, default is 0.2 (20% testing data)
-        feature_columns (list): the list of features to use to feed into the model, default is everything grabbed from yahoo_fin
-    """
+    # get all historical data from ticker
     df = si.get_data(ticker)
     # this will contain all the elements we want to return from this function
     result = {}
@@ -46,16 +34,17 @@ def load_data_historical(ticker, n_steps=50, scale=True, lookup_step=1,
     # last `lookup_step` columns contains NaN in future column
     # get them before droping NaNs
     last_sequence = np.array(df[feature_columns].tail(lookup_step))
-    # drop NaNs
+    # drop null values
     df.dropna(inplace=True)
     sequence_data = []
+    # set up sequences to track the data for n_steps before target
     sequences = deque(maxlen=n_steps)
     for entry, target in zip(df[feature_columns + ["date"]].values, df['future'].values):
         sequences.append(entry)
+        # once you have reacted the last step append the sequences and the target price
         if len(sequences) == n_steps:
             sequence_data.append([np.array(sequences), target])
     # get the last sequence by appending the last `n_step` sequence with `lookup_step` sequence
-    # for instance, if n_steps=50 and lookup_step=10, last_sequence should be of 60 (that is 50+10) length
     # this last_sequence will be used to predict future stock prices that are not available in the dataset
     last_sequence = list([s[:len(feature_columns)] for s in sequences]) + list(last_sequence)
     last_sequence = np.array(last_sequence).astype(np.float32)
@@ -88,7 +77,7 @@ def load_data_historical(ticker, n_steps=50, scale=True, lookup_step=1,
     result["X_test"] = result["X_test"][:, :, :len(feature_columns)].astype(np.float32)
     return result
 
-def load_data_7days(ticker, n_steps=60, scale=True, lookup_step=390,
+def load_data_7days(ticker, n_steps=190, scale=True, lookup_step=390,
                 test_size=0.2, feature_columns=['open', 'volume', 'close', 'high', 'low']):
     # 390 is the amount of minutes in one market day
     # get data in last 7 days by minute
@@ -119,6 +108,7 @@ def load_data_7days(ticker, n_steps=60, scale=True, lookup_step=390,
     # drop NaNs
     df.dropna(inplace=True)
     sequence_data = []
+    # set sequences to
     sequences = deque(maxlen=n_steps)
     for entry, target in zip(df[feature_columns + ["date-minute"]].values, df['future'].values):
         sequences.append(entry)
@@ -157,6 +147,6 @@ def load_data_7days(ticker, n_steps=60, scale=True, lookup_step=390,
     result["X_test"] = result["X_test"][:, :, :len(feature_columns)].astype(np.float32)
     return result
 
-data = load_data_7days("AAPL")
-
+# data = load_data_7days("AAPL")
+#
 test = load_data_historical("AAPL")

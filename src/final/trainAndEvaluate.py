@@ -5,7 +5,11 @@ from model import create_model
 from predict import *
 
 ##################### TRAINING ########################
-data = load_data_7days(ticker, N_STEPS, scale=SCALE, lookup_step=LOOKUP_STEP, test_size=TEST_SIZE,
+if SEVEN_DAY:
+    data = load_data_7days(ticker, N_STEPS, scale=SCALE, lookup_step=LOOKUP_STEP, test_size=TEST_SIZE,
+                                feature_columns=FEATURE_COLUMNS)
+else:
+    data = load_data_historical(ticker, N_STEPS, scale=SCALE, lookup_step=LOOKUP_STEP, test_size=TEST_SIZE,
                 feature_columns=FEATURE_COLUMNS)
 
 # save df in files
@@ -13,7 +17,7 @@ data["df"].to_csv(ticker_data_filename)
 
 # construct the model
 model = create_model(N_STEPS, len(FEATURE_COLUMNS), loss=LOSS, units=UNITS, cell=CELL, n_layers=N_LAYERS,
-                    dropout=DROPOUT, optimizer=OPTIMIZER, bidirectional=BIDIRECTIONAL)
+                    dropout=DROPOUT, optimizer=OPTIMIZER)
 
 # a checkpoint object that stores the weights at each epoch to so ultimatley we will get the best weights
 checkpointer = ModelCheckpoint(os.path.join("results", model_name + ".h5"), save_weights_only=True, save_best_only=True, verbose=1)
@@ -55,8 +59,6 @@ total_buy_profit  = final_df["buy_profit"].sum()
 total_sell_profit = final_df["sell_profit"].sum()
 # total profit by adding sell & buy together
 total_profit = total_buy_profit + total_sell_profit
-# dividing total profit by number of testing samples (number of trades)
-profit_per_trade = total_profit / len(final_df)
 
 # printing metrics
 print(f"Future price after {LOOKUP_STEP} days is {future_price:.2f}$")
