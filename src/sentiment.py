@@ -4,11 +4,10 @@ from nltk.sentiment import SentimentIntensityAnalyzer
 nltk.download([
     "names",
     "stopwords",
-    "state_union",
     "twitter_samples",
     "averaged_perceptron_tagger",
     "vader_lexicon",
-    "punkt"])
+    ])
 
 # nltk.word_tokenize(), a function that splits raw text into individual words
 testText = " Josh is writing this because he feels good that he got his vaccination and a internship offer"
