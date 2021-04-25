@@ -1,0 +1,7 @@
+.DS_Store
+*.d2v
+*.d2v.*
+__pycache__
+.vscode
+*/curate/*
+*/cornell/*
